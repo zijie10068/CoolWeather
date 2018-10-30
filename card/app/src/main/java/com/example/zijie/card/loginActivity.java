@@ -2,11 +2,13 @@ package com.example.zijie.card;
 
 import android.Manifest;
 import android.content.pm.PackageManager;
+import android.os.SystemClock;
 import android.support.annotation.NonNull;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 import android.widget.TextView;
@@ -101,6 +103,8 @@ public class loginActivity extends AppCompatActivity  {
                 {
                     Toast.makeText(loginActivity.this, "未找到结果2222",
                             Toast.LENGTH_LONG).show();
+                    Log.d("Main", "onGetPoiResult: "+result.error.toString());
+
                 }
                 mPoiSearch.destroy();
 
@@ -175,6 +179,9 @@ public class loginActivity extends AppCompatActivity  {
         locationClient.stop();
         mapView.onDestroy();
         baiduMap.setMyLocationEnabled(false);
+        if(mPoiSearch!=null){
+            mPoiSearch.destroy();
+        }
     }
 
     @Override
@@ -202,8 +209,14 @@ public class loginActivity extends AppCompatActivity  {
         baiduMap.setMyLocationEnabled(true);
         positionText = findViewById(R.id.location);
         Button select_time = findViewById(R.id.select_time);
+        select_time.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                PoiInit();
+                mapView.setVisibility(View.VISIBLE);
+            }
+        });
 
-        PoiInit();
 
 
         List<String> permissionList = new ArrayList<>();
@@ -236,35 +249,34 @@ public class loginActivity extends AppCompatActivity  {
 
 
 
-
-        select_time.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                PopWindow popWindow = new PopWindow.Builder(loginActivity.this)
-                        .setStyle(PopWindow.PopWindowStyle.PopUp)
-                        .setTitle("选择一个时间")
-                        .addItemAction(new PopItemAction("今天"))
-                        .addItemAction(new PopItemAction("明天",PopItemAction.PopItemStyle.Normal))
-                        .addItemAction(new PopItemAction("后天",PopItemAction.PopItemStyle.Normal,
-                                new PopItemAction.OnClickListener()
-                                {
-                                    @Override
-                                    public void onClick() {
-                                        Toast.makeText(loginActivity.this, "选项3", Toast.LENGTH_SHORT).show();
-                                    }
-                                }))
-                        .addItemAction(new PopItemAction("确定",PopItemAction.PopItemStyle.Warning,new PopItemAction.OnClickListener()
-                        {
-                            @Override
-                            public void onClick() {
-                                Toast.makeText(loginActivity.this, "确定", Toast.LENGTH_SHORT).show();
-                            }
-                        }))
-                        .addItemAction(new PopItemAction("取消",PopItemAction.PopItemStyle.Cancel))
-                        .create();
-                popWindow.show();
-            }
-        });
+//        select_time.setOnClickListener(new View.OnClickListener() {
+//            @Override
+//            public void onClick(View view) {
+//                PopWindow popWindow = new PopWindow.Builder(loginActivity.this)
+//                        .setStyle(PopWindow.PopWindowStyle.PopUp)
+//                        .setTitle("选择一个时间")
+//                        .addItemAction(new PopItemAction("今天"))
+//                        .addItemAction(new PopItemAction("明天",PopItemAction.PopItemStyle.Normal))
+//                        .addItemAction(new PopItemAction("后天",PopItemAction.PopItemStyle.Normal,
+//                                new PopItemAction.OnClickListener()
+//                                {
+//                                    @Override
+//                                    public void onClick() {
+//                                        Toast.makeText(loginActivity.this, "选项3", Toast.LENGTH_SHORT).show();
+//                                    }
+//                                }))
+//                        .addItemAction(new PopItemAction("确定",PopItemAction.PopItemStyle.Warning,new PopItemAction.OnClickListener()
+//                        {
+//                            @Override
+//                            public void onClick() {
+//                                Toast.makeText(loginActivity.this, "确定", Toast.LENGTH_SHORT).show();
+//                            }
+//                        }))
+//                        .addItemAction(new PopItemAction("取消",PopItemAction.PopItemStyle.Cancel))
+//                        .create();
+//                popWindow.show();
+//            }
+//        });
 
 
     }
