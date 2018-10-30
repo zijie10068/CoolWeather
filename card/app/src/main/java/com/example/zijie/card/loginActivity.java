@@ -24,11 +24,22 @@ import com.baidu.mapapi.map.MapStatusUpdateFactory;
 import com.baidu.mapapi.map.MapView;
 import com.baidu.mapapi.map.MyLocationData;
 import com.baidu.mapapi.model.LatLng;
+import com.baidu.mapapi.search.core.SearchResult;
+import com.baidu.mapapi.search.poi.OnGetPoiSearchResultListener;
+import com.baidu.mapapi.search.poi.PoiCitySearchOption;
+import com.baidu.mapapi.search.poi.PoiDetailResult;
+import com.baidu.mapapi.search.poi.PoiDetailSearchOption;
+import com.baidu.mapapi.search.poi.PoiDetailSearchResult;
+import com.baidu.mapapi.search.poi.PoiIndoorResult;
+import com.baidu.mapapi.search.poi.PoiResult;
+import com.baidu.mapapi.search.poi.PoiSearch;
 import com.hmy.popwindow.PopItemAction;
 import com.hmy.popwindow.PopWindow;
+import com.overlayutil.PoiOverlay;
 
 import java.util.ArrayList;
 import java.util.List;
+
 
 public class loginActivity extends AppCompatActivity  {
     public LocationClient locationClient;
@@ -36,6 +47,94 @@ public class loginActivity extends AppCompatActivity  {
     private MapView mapView;
     private BaiduMap baiduMap ;
     private boolean status= true;
+    private PoiSearch mPoiSearch;
+
+
+    private class MyPoiOverlay extends PoiOverlay {
+
+        public MyPoiOverlay(BaiduMap baiduMap) {
+            super(baiduMap);
+        }
+
+        @Override
+
+        public boolean onPoiClick(int index) {
+            super.onPoiClick(index);
+            return true;
+        }
+    }
+
+
+    private void PoiInit()
+    {
+        mPoiSearch = PoiSearch.newInstance();
+        OnGetPoiSearchResultListener poiListener = new OnGetPoiSearchResultListener() {
+            @Override
+            public void onGetPoiResult(PoiResult result) {
+                if (result == null || result.error == SearchResult.ERRORNO.RESULT_NOT_FOUND) {
+                    Toast.makeText(loginActivity.this, "未找到结果",
+                            Toast.LENGTH_LONG).show();
+                    return;
+                }
+
+                else if (result.error == SearchResult.ERRORNO.NO_ERROR) {
+
+                    baiduMap.clear();
+
+                    //创建PoiOverlay
+
+                    PoiOverlay overlay = new MyPoiOverlay(baiduMap);
+
+                    //设置overlay可以处理标注点击事件
+
+                    baiduMap.setOnMarkerClickListener(overlay);
+                    Toast.makeText(loginActivity.this, "找到结果",
+                            Toast.LENGTH_LONG).show();
+                    //设置PoiOverlay数据
+
+                    overlay.setData(result);
+                    overlay.addToMap();
+                    overlay.zoomToSpan();
+                    return;
+                }
+                else
+                {
+                    Toast.makeText(loginActivity.this, "未找到结果2222",
+                            Toast.LENGTH_LONG).show();
+                }
+                mPoiSearch.destroy();
+
+
+        }
+
+            @Override
+            public void onGetPoiDetailResult(PoiDetailResult result) {
+                result.getAddress();
+
+
+            }
+
+            @Override
+            public void onGetPoiDetailResult(PoiDetailSearchResult poiDetailSearchResult) {
+
+            }
+
+            @Override
+            public void onGetPoiIndoorResult(PoiIndoorResult poiIndoorResult) {
+
+            }
+        };
+        mPoiSearch.setOnGetPoiSearchResultListener(poiListener);
+        mPoiSearch.searchInCity((new PoiCitySearchOption())
+                .city("沈阳")
+                .keyword("银行")
+                .pageNum(10));
+//                        mPoiSearch.searchInCity((new PoiCitySearchOption())
+//                .city("杭州")
+//                .keyword("沙县小吃")
+//                .pageNum(10));
+
+    }
 
     private void requestLocation()
     {
@@ -101,10 +200,12 @@ public class loginActivity extends AppCompatActivity  {
         mapView = findViewById(R.id.map);
         baiduMap = mapView.getMap();
         baiduMap.setMyLocationEnabled(true);
-
-
         positionText = findViewById(R.id.location);
         Button select_time = findViewById(R.id.select_time);
+
+        PoiInit();
+
+
         List<String> permissionList = new ArrayList<>();
         //权限申请
         if(ContextCompat.checkSelfPermission(loginActivity.this,
@@ -167,6 +268,8 @@ public class loginActivity extends AppCompatActivity  {
 
 
     }
+
+
 //    private  void requestLocation()
 //    {
 //        locationClient.start();
