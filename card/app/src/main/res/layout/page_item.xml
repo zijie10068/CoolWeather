@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout
+    xmlns:android="http://schemas.android.com/apk/res/android" android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:layout_gravity="center">
+    <LinearLayout
+        android:padding="25dp"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical">
+        <TextView
+            style="@style/TextAppearance.AppCompat.Title"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:id="@+id/content_text"
+            android:text="Bank of Shanghai"
+            android:gravity="center" />
+        <TextView
+            style="@style/TextAppearance.AppCompat.Body1"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:id="@+id/title_text"
+            android:text="zijie"
+            android:gravity="center" />
+        <Button
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:id="@+id/enter"
+            android:text="点击进入"
+            android:layout_marginTop="24dp"
+            style="@style/ButtonStyle"
+            android:layout_gravity="center"/>
+
+
+    </LinearLayout>
+
+
+
+</LinearLayout>
