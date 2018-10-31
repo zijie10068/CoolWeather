@@ -3,6 +3,7 @@ package com.example.zijie.card;
 import android.Manifest;
 import android.content.pm.PackageManager;
 import android.graphics.BitmapFactory;
+import android.location.Geocoder;
 import android.os.SystemClock;
 import android.support.annotation.NonNull;
 import android.support.v4.app.ActivityCompat;
@@ -37,6 +38,11 @@ import com.baidu.mapapi.map.OverlayOptions;
 import com.baidu.mapapi.model.LatLng;
 import com.baidu.mapapi.model.inner.GeoPoint;
 import com.baidu.mapapi.search.core.SearchResult;
+import com.baidu.mapapi.search.geocode.GeoCodeResult;
+import com.baidu.mapapi.search.geocode.GeoCoder;
+import com.baidu.mapapi.search.geocode.OnGetGeoCoderResultListener;
+import com.baidu.mapapi.search.geocode.ReverseGeoCodeOption;
+import com.baidu.mapapi.search.geocode.ReverseGeoCodeResult;
 import com.baidu.mapapi.search.poi.OnGetPoiSearchResultListener;
 import com.baidu.mapapi.search.poi.PoiCitySearchOption;
 import com.baidu.mapapi.search.poi.PoiDetailResult;
@@ -64,8 +70,9 @@ public class loginActivity extends AppCompatActivity  {
     private double  langitude;
     private boolean status= true;
     private PoiSearch mPoiSearch;
+    GeoCoder geoCoder;
 
-
+///////////////////////////////////////////////////////重写一些方法onClick
     private class MyPoiOverlay extends PoiOverlay {
 
         public MyPoiOverlay(BaiduMap baiduMap) {
@@ -83,14 +90,15 @@ public class loginActivity extends AppCompatActivity  {
         public boolean onMarkerClick(Marker marker) {
             Toast.makeText(loginActivity.this,"123",Toast.LENGTH_SHORT).show();
 //            Log.d("321", getMarkerList().indexOf(marker)+"");
-            LatLng latLng = marker.getPosition();
+            final LatLng latLng = marker.getPosition();
             Button button = new Button(getApplicationContext());
             InfoWindow mInfoWindow = new InfoWindow(button, latLng, -47);
             button.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View view) {
-                    Toast.makeText(loginActivity.this,"嘿嘿",
-                            Toast.LENGTH_SHORT).show();
+
+                    Log.d("hi", "经度 "+latLng.longitude+"  纬度"
+                    +latLng.latitude);
                 }
             });
 
@@ -99,12 +107,14 @@ public class loginActivity extends AppCompatActivity  {
         }
     }
 
+    ///////////////////////////////////////////////////////////////////////////////////////////////
+
+
+
+///////poi检索步骤，参数
 
     private void PoiInit()
     {
-        ///绘制标记
-
-
         mPoiSearch = PoiSearch.newInstance();
         OnGetPoiSearchResultListener poiListener = new OnGetPoiSearchResultListener() {
             @Override
@@ -164,6 +174,8 @@ public class loginActivity extends AppCompatActivity  {
 
             }
         };
+
+        //poi检索逻辑
         mPoiSearch.setOnGetPoiSearchResultListener(poiListener);
 //        mPoiSearch.searchInCity((new PoiCitySearchOption())
 //                .city("沈阳")
@@ -175,8 +187,8 @@ public class loginActivity extends AppCompatActivity  {
 //                .location(new LatLng(latitude,langitude))
                 .location(new LatLng(31.285815,121.473989))
                 .pageCapacity(5)
-        .radius(50000)
-        .pageNum(0));
+                .radius(50000)
+                .pageNum(0));
 
 
 
@@ -187,11 +199,7 @@ public class loginActivity extends AppCompatActivity  {
 //                .pageNum(10));
     }
 
-    private void requestLocation()
-    {
-        init();
-        locationClient.start();
-    }
+//定位自己的位置//////////
 
     private void locationTo(BDLocation location)
     {
@@ -264,9 +272,36 @@ public class loginActivity extends AppCompatActivity  {
                         Toast.LENGTH_SHORT).show();
                 InfoWindow infoWindow = new InfoWindow(infoLayout,marker.getPosition(),10);
                 baiduMap.showInfoWindow(infoWindow);
+                geoCoder.reverseGeoCode(new ReverseGeoCodeOption()
+                        .location(new LatLng(41.737347,123.235639)));
                 return false;
             }
         });
+        geoCoder = GeoCoder.newInstance();
+        OnGetGeoCoderResultListener listener = new OnGetGeoCoderResultListener() {
+
+            public void onGetGeoCodeResult(GeoCodeResult result) {
+
+                if (result == null || result.error != SearchResult.ERRORNO.NO_ERROR) {
+                    //没有检索到结果
+                }
+
+                //获取地理编码结果
+            }
+
+            @Override
+
+            public void onGetReverseGeoCodeResult(ReverseGeoCodeResult result) {
+
+                if (result == null || result.error != SearchResult.ERRORNO.NO_ERROR) {
+                    //没有找到检索结果
+                }
+                Log.d("反向", "onGetReverseGeoCodeResult: "+result.getAddress());
+
+                //获取反向地理编码结果
+            }
+        };
+        geoCoder.setOnGetGeoCodeResultListener(listener);
         positionText = findViewById(R.id.location);
         Button select_time = findViewById(R.id.select_time);
         select_time.setOnClickListener(new View.OnClickListener() {
@@ -284,6 +319,7 @@ public class loginActivity extends AppCompatActivity  {
             }
         });
 
+        //权限申请        //权限申请        //权限申请        //权限申请        //权限申请
 
 
         List<String> permissionList = new ArrayList<>();
@@ -417,5 +453,10 @@ public class loginActivity extends AppCompatActivity  {
 
 
         }
+    }
+    private void requestLocation()
+    {
+        init();
+        locationClient.start();
     }
 }
