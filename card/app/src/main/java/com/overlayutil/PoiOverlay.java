@@ -1,6 +1,7 @@
 package com.overlayutil;
 
 import android.os.Bundle;
+import android.util.Log;
 
 import com.baidu.mapapi.map.BaiduMap;
 import com.baidu.mapapi.map.BitmapDescriptorFactory;
@@ -19,9 +20,11 @@ import java.util.List;
  */
 public class PoiOverlay extends OverlayManager {
 
-    private static final int MAX_POI_SIZE = 10;
+    private static final int MAX_POI_SIZE = 20;
 
     private PoiResult mPoiResult = null;
+
+    List<OverlayOptions> markerList = new ArrayList<>();
 
     /**
      * 构造函数
@@ -47,7 +50,7 @@ public class PoiOverlay extends OverlayManager {
             return null;
         }
 
-        List<OverlayOptions> markerList = new ArrayList<>();
+        markerList = new ArrayList<>();
         int markerSize = 0;
 
         for (int i = 0; i < mPoiResult.getAllPoi().size() && markerSize < MAX_POI_SIZE; i++) {
@@ -87,16 +90,17 @@ public class PoiOverlay extends OverlayManager {
      */
     public boolean onPoiClick(int i) {
 //        if (mPoiResult.getAllPoi() != null
-//                && mPoiResult.getAllPoi().get(i) != null) {
-//            Toast.makeText(BMapManager.getInstance().getContext(),
-//                    mPoiResult.getAllPoi().get(i).name, Toast.LENGTH_LONG)
-//                    .show();
-//        }
+////                && mPoiResult.getAllPoi().get(i) != null) {
+////            Toast.makeText(BMapManager.getInstance().getContext(),
+////                    mPoiResult.getAllPoi().get(i).name, Toast.LENGTH_LONG)
+////                    .show();
+////        }
         return false;
     }
 
     @Override
-    public final boolean onMarkerClick(Marker marker) {
+    public  boolean onMarkerClick(Marker marker) {
+        Log.d("321", "onMarkerClick: 123");
         if (!mOverlayList.contains(marker)) {
             return false;
         }
@@ -111,5 +115,10 @@ public class PoiOverlay extends OverlayManager {
     @Override
     public boolean onPolylineClick(Polyline polyline) {
         return false;
+    }
+
+    public List<OverlayOptions> getMarkerList()
+    {
+        return markerList;
     }
 }

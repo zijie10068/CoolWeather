@@ -2,6 +2,7 @@ package com.example.zijie.card;
 
 import android.Manifest;
 import android.content.pm.PackageManager;
+import android.graphics.BitmapFactory;
 import android.os.SystemClock;
 import android.support.annotation.NonNull;
 import android.support.v4.app.ActivityCompat;
@@ -9,8 +10,10 @@ import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.util.Log;
+import android.view.LayoutInflater;
 import android.view.View;
 import android.widget.Button;
+import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -21,11 +24,18 @@ import com.baidu.location.LocationClient;
 import com.baidu.location.LocationClientOption;
 import com.baidu.mapapi.SDKInitializer;
 import com.baidu.mapapi.map.BaiduMap;
+import com.baidu.mapapi.map.BitmapDescriptor;
+import com.baidu.mapapi.map.BitmapDescriptorFactory;
+import com.baidu.mapapi.map.InfoWindow;
 import com.baidu.mapapi.map.MapStatusUpdate;
 import com.baidu.mapapi.map.MapStatusUpdateFactory;
 import com.baidu.mapapi.map.MapView;
+import com.baidu.mapapi.map.Marker;
+import com.baidu.mapapi.map.MarkerOptions;
 import com.baidu.mapapi.map.MyLocationData;
+import com.baidu.mapapi.map.OverlayOptions;
 import com.baidu.mapapi.model.LatLng;
+import com.baidu.mapapi.model.inner.GeoPoint;
 import com.baidu.mapapi.search.core.SearchResult;
 import com.baidu.mapapi.search.poi.OnGetPoiSearchResultListener;
 import com.baidu.mapapi.search.poi.PoiCitySearchOption;
@@ -33,8 +43,10 @@ import com.baidu.mapapi.search.poi.PoiDetailResult;
 import com.baidu.mapapi.search.poi.PoiDetailSearchOption;
 import com.baidu.mapapi.search.poi.PoiDetailSearchResult;
 import com.baidu.mapapi.search.poi.PoiIndoorResult;
+import com.baidu.mapapi.search.poi.PoiNearbySearchOption;
 import com.baidu.mapapi.search.poi.PoiResult;
 import com.baidu.mapapi.search.poi.PoiSearch;
+import com.baidu.mapapi.search.poi.PoiSortType;
 import com.hmy.popwindow.PopItemAction;
 import com.hmy.popwindow.PopWindow;
 import com.overlayutil.PoiOverlay;
@@ -48,6 +60,8 @@ public class loginActivity extends AppCompatActivity  {
     private TextView positionText;
     private MapView mapView;
     private BaiduMap baiduMap ;
+    private double  latitude;
+    private double  langitude;
     private boolean status= true;
     private PoiSearch mPoiSearch;
 
@@ -64,11 +78,33 @@ public class loginActivity extends AppCompatActivity  {
             super.onPoiClick(index);
             return true;
         }
+
+        @Override
+        public boolean onMarkerClick(Marker marker) {
+            Toast.makeText(loginActivity.this,"123",Toast.LENGTH_SHORT).show();
+//            Log.d("321", getMarkerList().indexOf(marker)+"");
+            LatLng latLng = marker.getPosition();
+            Button button = new Button(getApplicationContext());
+            InfoWindow mInfoWindow = new InfoWindow(button, latLng, -47);
+            button.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View view) {
+                    Toast.makeText(loginActivity.this,"嘿嘿",
+                            Toast.LENGTH_SHORT).show();
+                }
+            });
+
+            baiduMap.showInfoWindow(mInfoWindow);
+            return super.onMarkerClick(marker);
+        }
     }
 
 
     private void PoiInit()
     {
+        ///绘制标记
+
+
         mPoiSearch = PoiSearch.newInstance();
         OnGetPoiSearchResultListener poiListener = new OnGetPoiSearchResultListener() {
             @Override
@@ -96,7 +132,7 @@ public class loginActivity extends AppCompatActivity  {
 
                     overlay.setData(result);
                     overlay.addToMap();
-                    overlay.zoomToSpan();
+//                    overlay.zoomToSpan();
                     return;
                 }
                 else
@@ -129,15 +165,26 @@ public class loginActivity extends AppCompatActivity  {
             }
         };
         mPoiSearch.setOnGetPoiSearchResultListener(poiListener);
-        mPoiSearch.searchInCity((new PoiCitySearchOption())
-                .city("沈阳")
-                .keyword("银行")
-                .pageNum(10));
+//        mPoiSearch.searchInCity((new PoiCitySearchOption())
+//                .city("沈阳")
+//                .keyword("银行")
+//                .pageNum(10));
+
+        mPoiSearch.searchNearby(new PoiNearbySearchOption()
+        .keyword("上海银行")
+//                .location(new LatLng(latitude,langitude))
+                .location(new LatLng(31.285815,121.473989))
+                .pageCapacity(5)
+        .radius(50000)
+        .pageNum(0));
+
+
+
+
 //                        mPoiSearch.searchInCity((new PoiCitySearchOption())
 //                .city("杭州")
 //                .keyword("沙县小吃")
 //                .pageNum(10));
-
     }
 
     private void requestLocation()
@@ -167,10 +214,12 @@ public class loginActivity extends AppCompatActivity  {
 
     private  void init()
     {
+
         LocationClientOption option = new LocationClientOption();
         option.setScanSpan(5000);
         option.setIsNeedAddress(true);
         locationClient.setLocOption(option);
+
     }
 
     @Override
@@ -195,7 +244,6 @@ public class loginActivity extends AppCompatActivity  {
         super.onResume();
         mapView.onResume();
     }
-
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -206,7 +254,19 @@ public class loginActivity extends AppCompatActivity  {
         setContentView(R.layout.activity_login);
         mapView = findViewById(R.id.map);
         baiduMap = mapView.getMap();
+        View view = LayoutInflater.from(this).inflate(R.layout.infomark,null);
+        final LinearLayout infoLayout = view.findViewById(R.id.infomark);
         baiduMap.setMyLocationEnabled(true);
+        baiduMap.setOnMarkerClickListener(new BaiduMap.OnMarkerClickListener() {
+            @Override
+            public boolean onMarkerClick(Marker marker) {
+                Toast.makeText(loginActivity.this,marker.getTitle(),
+                        Toast.LENGTH_SHORT).show();
+                InfoWindow infoWindow = new InfoWindow(infoLayout,marker.getPosition(),10);
+                baiduMap.showInfoWindow(infoWindow);
+                return false;
+            }
+        });
         positionText = findViewById(R.id.location);
         Button select_time = findViewById(R.id.select_time);
         select_time.setOnClickListener(new View.OnClickListener() {
@@ -214,6 +274,13 @@ public class loginActivity extends AppCompatActivity  {
             public void onClick(View view) {
                 PoiInit();
                 mapView.setVisibility(View.VISIBLE);
+                LatLng point = new LatLng(latitude,langitude);
+                BitmapDescriptor bitmap = BitmapDescriptorFactory.fromResource(
+                        R.drawable.icon_gcoding);
+                OverlayOptions markoption = new MarkerOptions()
+                        .position(point)
+                        .icon(bitmap).title("嘿嘿");
+                baiduMap.addOverlay(markoption);
             }
         });
 
@@ -317,9 +384,11 @@ public class loginActivity extends AppCompatActivity  {
         public void onReceiveLocation(BDLocation location) {
 
                     StringBuilder currentPosition = new StringBuilder();
-                    currentPosition.append("纬度：").append(location.getLatitude())
+                    langitude = location.getLongitude();
+                    latitude = location.getLatitude();
+                    currentPosition.append("纬度：").append(latitude)
                             .append("\n");
-                    currentPosition.append("经度：").append(location.getLongitude())
+                    currentPosition.append("经度：").append(langitude)
                             .append("\n");
             currentPosition.append("国家：").append(location.getCountry())
                     .append("\n");
