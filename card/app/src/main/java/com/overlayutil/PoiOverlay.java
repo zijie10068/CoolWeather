@@ -22,7 +22,7 @@ public class PoiOverlay extends OverlayManager {
 
     private static final int MAX_POI_SIZE = 20;
 
-    private PoiResult mPoiResult = null;
+    PoiResult mPoiResult = null;
 
     List<OverlayOptions> markerList = new ArrayList<>();
 
@@ -120,5 +120,10 @@ public class PoiOverlay extends OverlayManager {
     public List<OverlayOptions> getMarkerList()
     {
         return markerList;
+    }
+
+    public PoiResult getmPoiResult()
+    {
+        return mPoiResult;
     }
 }

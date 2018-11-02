@@ -13,8 +13,10 @@ import android.os.Bundle;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
+import android.view.ViewParent;
 import android.widget.Button;
 import android.widget.LinearLayout;
+import android.widget.ListView;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -37,6 +39,7 @@ import com.baidu.mapapi.map.MyLocationData;
 import com.baidu.mapapi.map.OverlayOptions;
 import com.baidu.mapapi.model.LatLng;
 import com.baidu.mapapi.model.inner.GeoPoint;
+import com.baidu.mapapi.search.core.PoiInfo;
 import com.baidu.mapapi.search.core.SearchResult;
 import com.baidu.mapapi.search.geocode.GeoCodeResult;
 import com.baidu.mapapi.search.geocode.GeoCoder;
@@ -69,43 +72,61 @@ public class loginActivity extends AppCompatActivity  {
     private double  latitude;
     private double  langitude;
     private boolean status= true;
+    ListView bankList ;
     private PoiSearch mPoiSearch;
+    private Button show_list;
+    private InfoWindow infoWindow;
+    View view;
+    PoiResult mPoiResult = null;
     GeoCoder geoCoder;
 
 ///////////////////////////////////////////////////////重写一些方法onClick
     private class MyPoiOverlay extends PoiOverlay {
 
-        public MyPoiOverlay(BaiduMap baiduMap) {
-            super(baiduMap);
-        }
-
-        @Override
-
-        public boolean onPoiClick(int index) {
-            super.onPoiClick(index);
-            return true;
-        }
-
-        @Override
-        public boolean onMarkerClick(Marker marker) {
-            Toast.makeText(loginActivity.this,"123",Toast.LENGTH_SHORT).show();
-//            Log.d("321", getMarkerList().indexOf(marker)+"");
-            final LatLng latLng = marker.getPosition();
-            Button button = new Button(getApplicationContext());
-            InfoWindow mInfoWindow = new InfoWindow(button, latLng, -47);
-            button.setOnClickListener(new View.OnClickListener() {
-                @Override
-                public void onClick(View view) {
-
-                    Log.d("hi", "经度 "+latLng.longitude+"  纬度"
-                    +latLng.latitude);
-                }
-            });
-
-            baiduMap.showInfoWindow(mInfoWindow);
-            return super.onMarkerClick(marker);
-        }
+    public MyPoiOverlay(BaiduMap baiduMap) {
+        super(baiduMap);
     }
+
+    @Override
+
+    public boolean onPoiClick(int index) {
+        List<PoiInfo> PoiList = mPoiResult.getAllPoi();
+//        Toast.makeText(loginActivity.this,PoiList.get(0).name,Toast.LENGTH_SHORT).show();
+        Log.d("this", "onClick:" +PoiList.get(0).address);
+//        Toast.makeText(loginActivity.this,"onClick:" +PoiList.get(index).address,
+//                Toast.LENGTH_SHORT).show();
+        TextView textView = view.findViewById(R.id.text);
+        textView.setText(PoiList.get(index).name);
+        baiduMap.showInfoWindow(infoWindow);
+
+        super.onPoiClick(index);
+        return true;
+
+    }
+
+
+}
+
+//        @Override
+//        public boolean onMarkerClick(Marker marker) {
+//            Toast.makeText(loginActivity.this,"123",Toast.LENGTH_SHORT).show();
+////            Log.d("321", getMarkerList().indexOf(marker)+"");
+//            final LatLng latLng = marker.getPosition();
+//            Button button = new Button(getApplicationContext());
+//            InfoWindow mInfoWindow = new InfoWindow(button, latLng, -47);
+//            button.setOnClickListener(new View.OnClickListener() {
+//                @Override
+//                public void onClick(View view) {
+//
+//                    Log.d("hi", "经度 "+latLng.longitude+"  纬度"
+//                    +latLng.latitude);
+//                }
+//            });
+//
+//            baiduMap.showInfoWindow(mInfoWindow);
+//            return super.onMarkerClick(marker);
+//        }
+
 
     ///////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -139,10 +160,16 @@ public class loginActivity extends AppCompatActivity  {
                     Toast.makeText(loginActivity.this, "找到结果",
                             Toast.LENGTH_LONG).show();
                     //设置PoiOverlay数据
+                    mPoiResult = result;
 
                     overlay.setData(result);
                     overlay.addToMap();
-//                    overlay.zoomToSpan();
+                    overlay.zoomToSpan();
+                    locationAdapter adapter =new locationAdapter(loginActivity.this,
+                            R.layout.banklocation,mPoiResult.getAllPoi());
+//                LinearLayout linearLayout = findViewById(R.id.parent);
+//                linearLayout.removeView(findViewById(R.id.Bank_list));
+                    bankList.setAdapter(adapter);
                     return;
                 }
                 else
@@ -186,8 +213,9 @@ public class loginActivity extends AppCompatActivity  {
         .keyword("上海银行")
 //                .location(new LatLng(latitude,langitude))
                 .location(new LatLng(31.285815,121.473989))
-                .pageCapacity(5)
+                .pageCapacity(10)
                 .radius(50000)
+                .tag("银行")
                 .pageNum(0));
 
 
@@ -260,18 +288,20 @@ public class loginActivity extends AppCompatActivity  {
         SDKInitializer.initialize(getApplicationContext());
 //        baiduMap.setMyLocationEnabled(true);
         setContentView(R.layout.activity_login);
+        show_list = findViewById(R.id.show_list);
         mapView = findViewById(R.id.map);
+        bankList = findViewById(R.id.Bank_list);
         baiduMap = mapView.getMap();
-        View view = LayoutInflater.from(this).inflate(R.layout.infomark,null);
+        view = LayoutInflater.from(this).inflate(R.layout.infomark,null);
         final LinearLayout infoLayout = view.findViewById(R.id.infomark);
         baiduMap.setMyLocationEnabled(true);
         baiduMap.setOnMarkerClickListener(new BaiduMap.OnMarkerClickListener() {
             @Override
             public boolean onMarkerClick(Marker marker) {
-                Toast.makeText(loginActivity.this,marker.getTitle(),
-                        Toast.LENGTH_SHORT).show();
-                InfoWindow infoWindow = new InfoWindow(infoLayout,marker.getPosition(),10);
-                baiduMap.showInfoWindow(infoWindow);
+//                Toast.makeText(loginActivity.this,marker.getTitle(),
+//                        Toast.LENGTH_SHORT).show();
+                infoWindow = new InfoWindow(infoLayout,marker.getPosition(),10);
+//                baiduMap.showInfoWindow(infoWindow);
                 geoCoder.reverseGeoCode(new ReverseGeoCodeOption()
                         .location(new LatLng(41.737347,123.235639)));
                 return false;
@@ -298,17 +328,30 @@ public class loginActivity extends AppCompatActivity  {
                 }
                 Log.d("反向", "onGetReverseGeoCodeResult: "+result.getAddress());
 
+
                 //获取反向地理编码结果
             }
         };
         geoCoder.setOnGetGeoCodeResultListener(listener);
         positionText = findViewById(R.id.location);
+        show_list.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+//                locationAdapter adapter =new locationAdapter(loginActivity.this,
+//                        R.layout.banklocation,mPoiResult.getAllPoi());
+////                LinearLayout linearLayout = findViewById(R.id.parent);
+////                linearLayout.removeView(findViewById(R.id.Bank_list));
+//                bankList.setAdapter(adapter);
+            }
+        });
         Button select_time = findViewById(R.id.select_time);
         select_time.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
                 PoiInit();
                 mapView.setVisibility(View.VISIBLE);
+                positionText.setVisibility(View.GONE);
+
                 LatLng point = new LatLng(latitude,langitude);
                 BitmapDescriptor bitmap = BitmapDescriptorFactory.fromResource(
                         R.drawable.icon_gcoding);
